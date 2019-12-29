@@ -19,10 +19,9 @@ export function loginFailure(error: string) {
   } as const;
 }
 
-export function checkAuthRequest(token: string | null) {
+export function checkAuthRequest() {
   return {
-    type: 'CHECK_AUTH_REQUEST',
-    payload: { token }
+    type: 'CHECK_AUTH_REQUEST'
   } as const;
 }
 

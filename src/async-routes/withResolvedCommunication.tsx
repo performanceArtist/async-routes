@@ -11,20 +11,19 @@ type StateProps = {
   communication: Communication,
   shouldUpdate: boolean
 };
-type OwnProps<T> = {
-  action: (deps?: T) => Action<T>;
-  provider?: () => T,
+type OwnProps = {
+  action: () => Action<any>;
   children: React.ReactNode
 }
 
-type Props<T> = OwnProps<T> & StateProps;
+type Props = OwnProps & StateProps;
 
-class WithResolvedCommunication<T> extends React.Component<Props<T>> {
+class WithResolvedCommunication extends React.Component<Props> {
   componentDidMount() {
-    const { action, provider, shouldUpdate } = this.props;
+    const { action, shouldUpdate } = this.props;
 
     if (shouldUpdate) {
-      provider ? action(provider()) : action();
+      action();
     }
   }
 
@@ -53,19 +52,18 @@ function makeMapState(
   });
 }
 
-function makeWithResolvedCommunication<T = undefined>(args: {
+function makeWithResolvedCommunication(args: {
   selector: CommunicationSelector,
-  action: (deps?: T) => Action<any>,
+  action: () => Action<any>,
   shouldUpdate: (state: AppReduxState) => boolean,
-  provider?: () => T,
 }) {
-  const { selector, action, shouldUpdate, provider } = args;
+  const { selector, action, shouldUpdate } = args;
   const mapDispatch = { action };
   const mapState = makeMapState(selector, shouldUpdate);
   const Wrapper = connect(mapState, mapDispatch)(WithResolvedCommunication);
 
   return (Component: React.ComponentClass | React.FC) => () => (
-    <Wrapper provider={provider}>
+    <Wrapper>
       <Component />
     </Wrapper>
   );

@@ -19,7 +19,7 @@ function* loginWorker({ payload }: LoginRequest) {
       throw new Error('Wrong credentials');
     }
     localStorage.setItem('token', 'token');
-    yield put(loginSuccess({ username: 'username' }));
+    yield put(loginSuccess({ username }));
   } catch (error) {
     yield put(loginFailure(error.toString()));
   }
@@ -32,10 +32,10 @@ function* loginWatcher() {
 type CheckAuthRequest = PickByType<'CHECK_AUTH_REQUEST'>;
 const checkAuthRequestType: CheckAuthRequest['type'] = 'CHECK_AUTH_REQUEST';
 
-function* checkAuthWorker({ payload }: CheckAuthRequest) {
+function* checkAuthWorker() {
   try {
     yield delay(1000);
-    const { token } = payload;
+    const token = localStorage.getItem('token');
     if (token !== 'token') {
       throw new Error('Wrong token');
     }

@@ -15,13 +15,8 @@ export const withProfileRedirect = userRedirect({
   condition: user => Boolean(user),
 });
 
-const getToken = () => {
-  return localStorage.getItem('token');
-}
-
 const withAuthRequest = makeWithResolvedCommunication({
   selector: authSelectors.selectCheckAuthComm,
-  provider: getToken,
   action: authActions.checkAuthRequest,
   shouldUpdate: pipe(authSelectors.selectUser, not),
 });
