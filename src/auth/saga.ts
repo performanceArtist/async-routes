@@ -17,7 +17,7 @@ const loginRequestType: LoginRequest['type'] = 'LOGIN_REQUEST';
 
 function* loginWorker({ payload }: LoginRequest) {
   try {
-    yield delay(1000);
+    yield delay(500);
     const { username, password } = payload;
     if (username !== 'test' || password !== 'test') {
       throw new Error('Wrong credentials');
@@ -39,7 +39,7 @@ const checkAuthRequestType: CheckAuthRequest['type'] = 'CHECK_AUTH_REQUEST';
 
 function* checkAuthWorker() {
   try {
-    yield delay(1000);
+    yield delay(500);
     const token = localStorage.getItem('token');
     if (token !== 'token') {
       throw new Error('Wrong token');
@@ -59,7 +59,7 @@ const fetchUserDataRequestType: fetchUserDataRequest['type'] = 'FETCH_USER_DATA_
 
 function* fetchUserDataWorker() {
   try {
-    yield delay(1000);
+    yield delay(500);
     yield put(fetchUserDataSuccess(['Eat', 'Sleep', 'Shrek']));
   } catch (error) {
     yield put(fetchUserDataFailure(error.toString()));

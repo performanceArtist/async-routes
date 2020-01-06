@@ -19,7 +19,7 @@ function App() {
           <Route path="/public" component={Public} />
           <Route path="/login" component={withProfile(Login)} />
           <Route exact path="/profile" component={withAuth(Profile)} />
-          <Route path="/profile/edit" component={ProfileEdit} />
+          <Route path="/profile/edit" component={withAuth(ProfileEdit)} />
         </Switch>
       </HashRouter>
     </Provider>
