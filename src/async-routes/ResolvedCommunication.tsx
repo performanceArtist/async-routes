@@ -2,9 +2,11 @@ import React from 'react';
 import { equals } from 'ramda';
 
 import { Preloader } from './deps/Preloader/Preloader';
+import { isCompletedComm } from './deps/isCompletedComm';
 import { Communication } from './deps/types';
 
 type Status = 'pending' | 'error' | 'success';
+export type ResolvedStatus = Exclude<Status, 'pending'>;
 
 type Props = {
   communication: Communication;
@@ -16,10 +18,6 @@ type Props = {
 type State = {
   status: Status
 };
-
-function isCompletedComm(prev: Communication, next: Communication): boolean {
-  return prev.isRequesting && !next.isRequesting && !next.error;
-}
 
 class ResolvedCommunication extends React.Component<Props, State> {
   public state: State = {
@@ -40,12 +38,11 @@ class ResolvedCommunication extends React.Component<Props, State> {
       : errorStatus || 'pending';
 
     if (
-      newStatus !== 'pending'
-      && !equals(status, newStatus)
+      !equals(status, newStatus)
       && !equals(previousComm, currentComm)
     ) {
       const { onResolve } = this.props;
-      onResolve && newStatus && onResolve(newStatus);
+      onResolve && newStatus !== 'pending' && onResolve(newStatus);
       this.setState({ status: newStatus }); // eslint-disable-line
     }
   }
@@ -57,7 +54,7 @@ class ResolvedCommunication extends React.Component<Props, State> {
       return withPreloader && communication.isRequesting ? <Preloader /> : null;
     }
 
-    return children instanceof Function ? children(status) : children;
+    return children instanceof Function ? children(status) : children || null;
   }
 }
 

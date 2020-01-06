@@ -1,5 +1,5 @@
 import React from 'react';
-import { Redirect } from 'react-router-dom';
+import { Redirect, withRouter, RouteComponentProps } from 'react-router';
 import { connect } from 'react-redux';
 
 import { AppReduxState } from 'shared/types';
@@ -12,7 +12,7 @@ type OwnProps<T> = {
 type StateProps<T> = {
   stateField: T
 };
-type Props<T> = OwnProps<T> & StateProps<T>;
+type Props<T> = OwnProps<T> & StateProps<T> & RouteComponentProps;
 type Selector<T> = (state: AppReduxState) => T;
 
 function makeMapState<T>(selector: Selector<T>) {
@@ -23,10 +23,9 @@ function makeMapState<T>(selector: Selector<T>) {
 
 class RedirectOn<T> extends React.Component<Props<T>> {
   render() {
-    const { children, to, stateField, condition } = this.props;
+    const { children, history, to, stateField, condition } = this.props;
 
-    console.log('redirect');
-    if (condition(stateField)) {
+    if (condition(stateField) && history.location.pathname !== to) {
       return <Redirect to={to} />;
     }
 
@@ -35,16 +34,14 @@ class RedirectOn<T> extends React.Component<Props<T>> {
 }
 
 function makeRedirectOn<T>(selector: Selector<T>) {
-  return (props: OwnProps<T>) => {
-    const mapState = makeMapState(selector);
-    const Wrapper = connect(mapState)(RedirectOn);
+  const mapState = makeMapState(selector);
+  const Wrapper = withRouter(connect(mapState)(RedirectOn));
 
-    return (Component: React.ComponentClass | React.FC) => () => (
-      <Wrapper {...props}>
-        <Component />
-      </Wrapper>
-    );
-  };
+  return (props: OwnProps<T>) => (Component: React.ComponentClass | React.FC) => () => (
+    <Wrapper {...props}>
+      <Component />
+    </Wrapper>
+  );
 }
 
 export { makeRedirectOn };

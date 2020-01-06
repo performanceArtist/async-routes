@@ -6,6 +6,8 @@ export const initialCommunication: Communication = {
 
 export const initial: AppReduxState = {
   user: null,
+  todos: [],
   login: initialCommunication,
-  checkAuth: initialCommunication
+  checkAuth: initialCommunication,
+  fetchUserData: initialCommunication
 }

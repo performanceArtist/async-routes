@@ -1,70 +1,86 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import { AppReduxState } from 'shared/types';
-
 import { Communication, Action } from './deps/types';
-import { ResolvedCommunication } from './ResolvedCommunication';
+import { ResolvedCommunication, ResolvedStatus } from './ResolvedCommunication';
 
-type CommunicationSelector = (state: AppReduxState) => Communication;
+type CommunicationSelector<T> = (state: T) => Communication;
 type StateProps = {
   communication: Communication,
-  shouldUpdate: boolean
+  shouldUpdate: boolean | null
 };
-type OwnProps = {
-  action: () => Action<any>;
-  children: React.ReactNode
-}
 
-type Props = OwnProps & StateProps;
+type Props = StateProps & { action: () => Action<[]> };
 
 class WithResolvedCommunication extends React.Component<Props> {
   componentDidMount() {
     const { action, shouldUpdate } = this.props;
 
-    if (shouldUpdate) {
+    if (shouldUpdate === null) {
       action();
+      return;
     }
+
+    shouldUpdate && action();
   }
 
   render() {
     const { children, communication, shouldUpdate } = this.props;
 
-    if (!shouldUpdate) {
-      return children;
+    if (shouldUpdate !== null && !shouldUpdate) {
+      return children instanceof Function ? children(communication.error ? 'error' : 'success') : children;
     }
 
     return (
-      <ResolvedCommunication communication={communication} withPreloader>
+      <ResolvedCommunication
+        communication={communication}
+        withPreloader
+      >
         {children}
       </ResolvedCommunication>
     );
   }
 }
 
-function makeMapState(
-  selector: CommunicationSelector,
-  shouldUpdate: (state: AppReduxState) => boolean,
+function makeMapState<T>(
+  selector: CommunicationSelector<T>,
+  shouldUpdate?: (state: T) => boolean,
 ) {
-  return (state: AppReduxState): StateProps => ({
+  return (state: T): StateProps => ({
     communication: selector(state),
-    shouldUpdate: shouldUpdate(state),
+    shouldUpdate: shouldUpdate ? shouldUpdate(state) : null,
   });
 }
 
-function makeWithResolvedCommunication(args: {
-  selector: CommunicationSelector,
-  action: () => Action<any>,
-  shouldUpdate: (state: AppReduxState) => boolean,
+type Component = React.ComponentClass | React.FC;
+type RouteDecorator = (next: Component) => () => JSX.Element;
+type Fork = {
+  onSuccess: RouteDecorator,
+  onFailure: RouteDecorator
+};
+
+function makeFork(fork: Fork, next: Component) {
+  const { onSuccess, onFailure } = fork;
+
+  return (status: ResolvedStatus) => (status === 'success'
+    ? onSuccess(next)()
+    : onFailure(next)());
+}
+
+function makeWithResolvedCommunication<T = never>(args: {
+  selector: CommunicationSelector<T>,
+  action: () => Action<[]>,
+  shouldUpdate?: (state: T) => boolean,
+  fork?: Fork
 }) {
-  const { selector, action, shouldUpdate } = args;
+  const { selector, action, shouldUpdate, fork } = args;
   const mapDispatch = { action };
   const mapState = makeMapState(selector, shouldUpdate);
   const Wrapper = connect(mapState, mapDispatch)(WithResolvedCommunication);
 
-  return (Component: React.ComponentClass | React.FC) => () => (
+  return (Component: Component) => () => (
     <Wrapper>
-      <Component />
+      {fork ? makeFork(fork, Component) : <Component />}
     </Wrapper>
   );
 }

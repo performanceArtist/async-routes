@@ -5,10 +5,9 @@ export function loginRequest(username: string, password: string) {
   } as const;
 }
 
-export function loginSuccess(user: { username: string }) {
+export function loginSuccess() {
   return {
-    type: 'LOGIN_SUCCESS',
-    payload: user
+    type: 'LOGIN_SUCCESS'
   } as const;
 }
 
@@ -39,11 +38,35 @@ export function checkAuthSuccess(user: { username: string }) {
   } as const;
 }
 
-export function logout() {
-  localStorage.removeItem('token');
+export function fetchUserDataRequest() {
+  return {
+    type: 'FETCH_USER_DATA_REQUEST'
+  } as const;
+}
 
+export function fetchUserDataFailure(error: string) {
+  return {
+    type: 'FETCH_USER_DATA_FAILURE',
+    payload: error
+  } as const;
+}
+
+export function fetchUserDataSuccess(todos: string[]) {
+  return {
+    type: 'FETCH_USER_DATA_SUCCESS',
+    payload: todos
+  } as const;
+}
+
+export function logout() {
   return {
     type: 'LOGOUT'
+  } as const;
+}
+
+export function resetState() {
+  return {
+    type: 'RESET_STATE'
   } as const;
 }
 
@@ -56,7 +79,11 @@ const actions = {
   checkAuthRequest,
   checkAuthSuccess,
   checkAuthFailure,
-  logout
+  fetchUserDataRequest,
+  fetchUserDataSuccess,
+  fetchUserDataFailure,
+  logout,
+  resetState
 };
 
 export type Actions = ActionTypes<typeof actions>;

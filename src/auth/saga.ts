@@ -3,8 +3,12 @@ import { takeLatest, delay, put, all } from 'redux-saga/effects';
 import {
   loginSuccess,
   loginFailure,
+  checkAuthRequest,
   checkAuthSuccess,
   checkAuthFailure,
+  fetchUserDataSuccess,
+  fetchUserDataFailure,
+  resetState,
   PickByType
 } from './actions';
 
@@ -19,7 +23,8 @@ function* loginWorker({ payload }: LoginRequest) {
       throw new Error('Wrong credentials');
     }
     localStorage.setItem('token', 'token');
-    yield put(loginSuccess({ username }));
+    yield put(loginSuccess());
+    yield put(checkAuthRequest());
   } catch (error) {
     yield put(loginFailure(error.toString()));
   }
@@ -49,9 +54,37 @@ function* checkAuthWatcher() {
   yield takeLatest(checkAuthRequestType, checkAuthWorker);
 };
 
+type fetchUserDataRequest = PickByType<'FETCH_USER_DATA_REQUEST'>;
+const fetchUserDataRequestType: fetchUserDataRequest['type'] = 'FETCH_USER_DATA_REQUEST';
+
+function* fetchUserDataWorker() {
+  try {
+    yield delay(1000);
+    yield put(fetchUserDataSuccess(['Eat', 'Sleep', 'Shrek']));
+  } catch (error) {
+    yield put(fetchUserDataFailure(error.toString()));
+  }
+}
+
+function* fetchUserDataWatcher() {
+  yield takeLatest(fetchUserDataRequestType, fetchUserDataWorker);
+};
+
+function* logoutWorker() {
+  localStorage.removeItem('token');
+  yield put(resetState());
+  yield put(checkAuthRequest());
+}
+
+function* logoutWatcher() {
+  yield takeLatest('LOGOUT', logoutWorker);
+}
+
 export function* rootSaga() {
   yield all([
     loginWatcher(),
-    checkAuthWatcher()
+    checkAuthWatcher(),
+    fetchUserDataWatcher(),
+    logoutWatcher()
   ]);
 }
